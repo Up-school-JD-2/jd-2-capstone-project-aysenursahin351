@@ -1,0 +1,12 @@
+#spring:
+#  datasource:
+#    username: root
+#    password: Ayse.nur0
+#    url: jdbc:mysql://localhost:3306/capstone
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#  jpa:
+#    show-sql: true
+#    hibernate:
+#      ddl-auto: update
+#    properties:
+#      spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQL8Dialect
