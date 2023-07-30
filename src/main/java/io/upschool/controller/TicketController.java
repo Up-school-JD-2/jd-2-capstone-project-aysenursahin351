@@ -1,43 +1,48 @@
 package io.upschool.controller;
 
+import io.upschool.dto.TicketDTO;
 import io.upschool.entity.Ticket;
 import io.upschool.service.TicketService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/tickets")
+@RequiredArgsConstructor
 public class TicketController {
-    @Autowired
-    private TicketService service;
+    private final TicketService ticketService;
 
-    @PostMapping("/addTicket")
-    public Ticket addticket(@RequestBody Ticket ticket ){
-        return service.saveTicket(ticket);
+    @GetMapping
+    public ResponseEntity<List<TicketDTO>> getAllTickets() {
+        List<TicketDTO> tickets = ticketService.getAllTickets();
+        return ResponseEntity.ok(tickets);
     }
-    @PostMapping("/addTickets")
-    public List<Ticket> addTickets(@RequestBody List<Ticket> tickets){
-        return (List<Ticket>) service.saveTickets(tickets);//??
+
+    @GetMapping("/{id}")
+    public ResponseEntity<TicketDTO> getTicketById(@PathVariable Long id) {
+        TicketDTO ticket = ticketService.getTicketById(id);
+        if (ticket != null) {
+            return ResponseEntity.ok(ticket);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
-    @GetMapping("/tickets")
-    public List<Ticket> findAllProducts(){
-        return service.getTickets();
+
+    @PostMapping
+    public ResponseEntity<TicketDTO> saveTicket(@RequestBody TicketDTO ticketDTO) {
+        TicketDTO savedTicket = ticketService.saveTicket(ticketDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedTicket);
     }
-    @GetMapping("/ticket/{id}")
-    public Ticket findTicketById(@PathVariable int id){
-        return service.getTicketById(id);
-    }
-    @GetMapping("/ticketByName/{name}")
-    public Ticket findTicketByName(@PathVariable String name){
-        return service.getTicketByName(name);
-    }
-    @PutMapping("/update")
-    public Ticket updateTicket(@RequestBody Ticket ticket){
-        return service.updateTicket(ticket);
-    }
-    @DeleteMapping("/delete/{id}")
-    public String deleteTicket(@PathVariable int id){
-        return  service.deleteTicket(id);
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTicket(@PathVariable Long id) {
+        ticketService.deleteTicket(id);
+        return ResponseEntity.noContent().build();
     }
 }
+

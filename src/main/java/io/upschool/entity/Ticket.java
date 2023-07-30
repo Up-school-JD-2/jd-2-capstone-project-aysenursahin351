@@ -1,25 +1,28 @@
 package io.upschool.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Generated;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+@Entity
+@Table(name = "ticket")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@Table(name="TICKET_TBL")
-
+@Builder
 public class Ticket {
     @Id
-    @GeneratedValue
-    private int id;
-    private String name;
-    private int quantity;
-    private double price;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "flight_id", nullable = false)
+    private Flight flight;
+
+    @Column(nullable = false)
+    private String passengerName;
+
+    @Column(nullable = false)
+    private String seatNumber;
+
 }
