@@ -2,7 +2,7 @@
 #  datasource:
 #    username: root
 #    password: Ayse.nur0
-#    url: jdbc:mysql://localhost:3306/capstone
+#    url: jdbc:mysql://localhost:3306/upschool
 #    driver-class-name: com.mysql.cj.jdbc.Driver
 #  jpa:
 #    show-sql: true

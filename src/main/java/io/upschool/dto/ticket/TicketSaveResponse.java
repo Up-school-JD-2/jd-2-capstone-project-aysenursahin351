@@ -1,6 +1,5 @@
-package io.upschool.dto;
+package io.upschool.dto.ticket;
 
-import io.upschool.entity.Ticket;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,10 +9,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class TicketDTO {
+public class TicketSaveResponse {
     private Long id;
     private Long flightId;
-    private FlightDTO flight;
     private String passengerName;
     private String seatNumber;
+
+    // Add getters and setters if necessary
 }

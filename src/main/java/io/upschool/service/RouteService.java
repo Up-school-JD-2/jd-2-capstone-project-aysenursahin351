@@ -1,19 +1,17 @@
 package io.upschool.service;
 
-import io.upschool.dto.AirportDTO;
-import io.upschool.dto.RouteDTO;
+import io.upschool.dto.airport.AirportSaveResponse;
+import io.upschool.dto.route.RouteSaveRequest;
+import io.upschool.dto.route.RouteSaveResponse;
+import io.upschool.dto.BaseResponse;
 import io.upschool.entity.Airport;
 import io.upschool.entity.Route;
+import io.upschool.exception.ResourceNotFoundException;
 import io.upschool.repository.RouteRepository;
-import org.jetbrains.annotations.NotNull;
-import io.upschool.dto.CompanyDTO;
-import io.upschool.service.CompanyService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,63 +20,119 @@ import java.util.stream.Collectors;
 @Transactional
 public class RouteService {
     private final RouteRepository routeRepository;
+    private final AirportService airportService;
 
-    public List<RouteDTO> getAllRoutes() {
-        List<Route> routes = routeRepository.findAll();
-        return routes.stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public BaseResponse<RouteSaveResponse> getRouteById(Long id) {
+        Route route = routeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Route not found with id : " + id));
+        return BaseResponse.<RouteSaveResponse>builder()
+                .status(200)
+                .isSuccess(true)
+                .data(convertToResponse(route))
+                .build();
     }
 
-    public RouteDTO getRouteById(Long id) {
-        return routeRepository.findById(id)
-                .map(this::convertToDTO)
-                .orElse(null);
-    }
-
-    public RouteDTO saveRoute(RouteDTO routeDTO) {
-        Route route = convertToEntity(routeDTO);
+    public BaseResponse<RouteSaveResponse> saveRoute(RouteSaveRequest routeRequest) {
+        Route route = convertToEntity(routeRequest);
         route = routeRepository.save(route);
-        return convertToDTO(route);
+        return BaseResponse.<RouteSaveResponse>builder()
+                .status(200)
+                .isSuccess(true)
+                .data(convertToResponse(route))
+                .build();
     }
 
-    public void deleteRoute(Long id) {
-        routeRepository.deleteById(id);
-    }
+    public BaseResponse<Void> deleteRoute(Long id) {
+        try {
+            // Route silme işlemleri
+            routeRepository.deleteById(id);
 
-    private RouteDTO convertToDTO(@NotNull Route route) {
-        return RouteDTO.builder()
+            return BaseResponse.<Void>builder()
+                    .status(200)
+                    .isSuccess(true)
+                    .data(null)
+                    .build();
+        } catch (Exception e) {
+            return BaseResponse.<Void>builder()
+                    .status(500)
+                    .isSuccess(false)
+                    .error("Route deletion failed")
+                    .data(null)
+                    .build();
+        }
+    }
+    private RouteSaveResponse convertToResponse(Route route) {
+        return RouteSaveResponse.builder()
                 .id(route.getId())
-                .departureAirport(convertToDTO(route.getDepartureAirport()))
-                .arrivalAirport(convertToDTO(route.getArrivalAirport()))
+                .departureAirport(convertToResponse(route.getDepartureAirport()))
+                .arrivalAirport(convertToResponse(route.getArrivalAirport()))
                 .distance(route.getDistance())
                 .build();
     }
 
-    private Route convertToEntity(@NotNull RouteDTO routeDTO) {
+    private Airport convertToEntity(Long airportId) {
+        AirportSaveResponse airportResponse = airportService.getAirportById(airportId);
+        if (airportResponse != null) {
+            return convertToEntity(airportResponse);
+        } else {
+            throw new IllegalArgumentException("Airport not found with id: " + airportId);
+        }
+    }
+
+
+    public BaseResponse<List<RouteSaveResponse>> getAllRoutes() {
+        List<Route> routes = routeRepository.findAll();
+        List<RouteSaveResponse> routeResponses = routes.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+
+        return BaseResponse.<List<RouteSaveResponse>>builder()
+                .status(200)
+                .isSuccess(true)
+                .data(routeResponses)
+                .build();
+    }
+    private Airport convertToEntity(AirportSaveResponse airportResponse) {
+        if (airportResponse == null) {
+            return null;
+        }
+
+        Airport airport = new Airport();
+        airport.setId(airportResponse.getId());
+        airport.setName(airportResponse.getName());
+        airport.setCountry(airportResponse.getCountry());
+        airport.setCode(airportResponse.getCode());
+        // Set other fields if needed
+
+        return airport;
+    }
+
+    private Route convertToEntity(RouteSaveRequest routeRequest) {
+        Airport departureAirport = convertToEntity(routeRequest.getDepartureAirportId());
+        Airport arrivalAirport = convertToEntity(routeRequest.getArrivalAirportId());
+
+        // Set "code" fields of airports
+        departureAirport.setCode(routeRequest.getCode());
+        arrivalAirport.setCode(routeRequest.getCode());
+
         return Route.builder()
-                .id(routeDTO.getId())
-                .departureAirport(convertToEntity(routeDTO.getDepartureAirport()))
-                .arrivalAirport(convertToEntity(routeDTO.getArrivalAirport()))
-                .distance((int) routeDTO.getDistance())
+                .departureAirport(departureAirport)
+                .arrivalAirport(arrivalAirport)
+                .distance((int) routeRequest.getDistance())
                 .build();
     }
 
-    private AirportDTO convertToDTO(@NotNull Airport airport) {
-        return AirportDTO.builder()
+
+    private AirportSaveResponse convertToResponse(Airport airport) {
+        if (airport == null) {
+            return null;
+        }
+
+        return AirportSaveResponse.builder()
                 .id(airport.getId())
                 .name(airport.getName())
                 .country(airport.getCountry())
                 .code(airport.getCode())
-                .build();
-    }
-
-    private Airport convertToEntity(@NotNull AirportDTO airportDTO) {
-        return Airport.builder()
-                .id(airportDTO.getId())
-                .name(airportDTO.getName())
-                .country(airportDTO.getCountry())
-                .code(airportDTO.getCode())
                 .build();
     }
 }

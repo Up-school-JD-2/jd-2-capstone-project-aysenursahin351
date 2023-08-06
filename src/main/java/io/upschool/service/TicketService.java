@@ -1,20 +1,14 @@
 package io.upschool.service;
 
-import io.upschool.dto.*;
-import io.upschool.entity.*;
-import io.upschool.repository.FlightRepository;
-import io.upschool.repository.RouteRepository;
+import io.upschool.dto.flight.FlightSaveResponse;
+import io.upschool.dto.ticket.TicketSaveRequest;
+import io.upschool.dto.ticket.TicketSaveResponse;
+import io.upschool.dto.BaseResponse;
+import io.upschool.entity.Ticket;
 import io.upschool.repository.TicketRepository;
-import org.jetbrains.annotations.NotNull;
-import io.upschool.service.CompanyService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,122 +17,65 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final FlightService flightService;
 
+    public BaseResponse<TicketSaveResponse> getTicketById(Long id) {
+        TicketSaveResponse TicketSaveResponse = ticketRepository.findById(id)
+                .map(this::convertToResponse)
+                .orElse(null);
+
+        if (TicketSaveResponse != null) {
+            return BaseResponse.<TicketSaveResponse>builder()
+                    .status(200)
+                    .isSuccess(true)
+                    .data(TicketSaveResponse)
+                    .build();
+        } else {
+            return BaseResponse.<TicketSaveResponse>builder()
+                    .status(404)
+                    .isSuccess(false)
+                    .error("Ticket not found with id: " + id)
+                    .build();
+        }
+    }
+
+    public BaseResponse<TicketSaveResponse> saveTicket(TicketSaveRequest ticketRequest) {
+        FlightSaveResponse flightResponse = flightService.getFlightById(ticketRequest.getFlightId()).getData();
+        if (flightResponse == null) {
+            return BaseResponse.<TicketSaveResponse>builder()
+                    .status(404)
+                    .isSuccess(false)
+                    .error("Flight not found with id: " + ticketRequest.getFlightId())
+                    .build();
+        }
+
+        Ticket ticket = convertToEntity(ticketRequest);
+        ticket.setFlight(flightService.convertToEntityFromResponse(ticketRequest.getFlightId(), flightService));
+        ticket = ticketRepository.save(ticket);
+        TicketSaveResponse ticketSaveResponse = convertToResponse(ticket);
+        return BaseResponse.<TicketSaveResponse>builder()
+                .status(200)
+                .isSuccess(true)
+                .data(ticketSaveResponse)
+                .build();
+    }
 
 
+    public void deleteTicket(Long id) {
+        ticketRepository.deleteById(id);
+    }
 
-    private TicketDTO convertToDTO(@NotNull Ticket ticket) {
-        return TicketDTO.builder()
+    private TicketSaveResponse convertToResponse(Ticket ticket) {
+        return TicketSaveResponse.builder()
                 .id(ticket.getId())
-                .flightId(ticket.getFlight().getId()) // flightId alanını doldurduk
+                .flightId(ticket.getFlight().getId())
                 .passengerName(ticket.getPassengerName())
                 .seatNumber(ticket.getSeatNumber())
                 .build();
     }
 
-    private Ticket convertToEntity(@NotNull TicketDTO ticketDTO) {
+    private Ticket convertToEntity(TicketSaveRequest ticketRequest) {
         return Ticket.builder()
-                .id(ticketDTO.getId())
-                .passengerName(ticketDTO.getPassengerName())
-                .seatNumber(ticketDTO.getSeatNumber())
+                .passengerName(ticketRequest.getPassengerName())
+                .seatNumber(ticketRequest.getSeatNumber())
                 .build();
     }
-
-    private FlightDTO convertToDTO(@NotNull Flight flight) {
-        return FlightDTO.builder()
-                .id(flight.getId())
-                .airline(convertToDTO(flight.getAirline()))
-                .route(convertToDTO(flight.getRoute()))
-                .departureDate(flight.getDepartureDate())
-                .price(flight.getPrice())
-                .build();
-    }
-
-    private AirportDTO convertToDTO(@NotNull Airport airport) {
-        return AirportDTO.builder()
-                .id(airport.getId())
-                .name(airport.getName())
-                .country(airport.getCountry())
-                .code(airport.getCode())
-                .build();
-    }
-
-    private RouteDTO convertToDTO(@NotNull Route route) {
-        return RouteDTO.builder()
-                .id(route.getId())
-                .departureAirport(convertToDTO(route.getDepartureAirport()))
-                .arrivalAirport(convertToDTO(route.getArrivalAirport()))
-                .distance(route.getDistance())
-                .build();
-    }
-
-    private Flight convertToEntity(@NotNull FlightDTO flightDTO) {
-        return Flight.builder()
-                .id(flightDTO.getId())
-                .departureDate(flightDTO.getDepartureDate())
-                .price(flightDTO.getPrice())
-                .build();
-    }
-
-    private CompanyDTO convertToDTO(@NotNull Company company) {
-        return CompanyDTO.builder()
-                .id(company.getId())
-                .name(company.getName())
-                .build();
-    }
-
-    private Company convertToEntity(@NotNull CompanyDTO companyDTO) {
-        return Company.builder()
-                .id(companyDTO.getId())
-                .name(companyDTO.getName())
-                .build();
-    }
-
-    private Route convertToEntity(@NotNull RouteDTO routeDTO) {
-        return Route.builder()
-                .id(routeDTO.getId())
-                .departureAirport(convertToEntity(routeDTO.getDepartureAirport()))
-                .arrivalAirport(convertToEntity(routeDTO.getArrivalAirport()))
-                .distance((int) routeDTO.getDistance())
-                .build();
-    }
-
-    private Airport convertToEntity(AirportDTO departureAirportDTO) {
-        return Airport.builder()
-                .id(departureAirportDTO.getId())
-                .name(departureAirportDTO.getName())
-                .country(departureAirportDTO.getCountry())
-                .code(departureAirportDTO.getCode())
-                .build();
-    }
-
-    public List<TicketDTO> getAllTickets() {
-        List<Ticket> tickets = ticketRepository.findAll();
-        return tickets.stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
-
-    public TicketDTO getTicketById(Long id) {
-        return ticketRepository.findById(Math.toIntExact(id))
-                .map(this::convertToDTO)
-                .orElse(null);
-    }
-
-    public TicketDTO saveTicket(TicketDTO ticketDTO) {
-        FlightDTO flightDTO = flightService.getFlightById(ticketDTO.getFlightId());
-        if (flightDTO == null) {
-            throw new IllegalArgumentException("Flight not found with id: " + ticketDTO.getFlightId());
-        }
-
-        Ticket ticket = convertToEntity(ticketDTO);
-        ticket.getFlight().setAirline(convertToEntity(flightDTO.getAirline()));
-        ticket.getFlight().setRoute(convertToEntity(flightDTO.getRoute()));
-        ticket = ticketRepository.save(ticket);
-        return convertToDTO(ticket);
-    }
-
-    public void deleteTicket(Long id) {
-        ticketRepository.deleteById(Math.toIntExact(id));
-    }
-
 }

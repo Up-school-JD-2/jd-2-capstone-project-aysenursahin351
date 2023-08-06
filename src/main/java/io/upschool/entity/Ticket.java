@@ -17,12 +17,11 @@ public class Ticket {
 
     @ManyToOne
     @JoinColumn(name = "flight_id", nullable = false)
-    private Flight flight;
+    private Flight flight; // Değişiklik: Flight tipinde olmalı
 
     @Column(nullable = false)
     private String passengerName;
 
     @Column(nullable = false)
     private String seatNumber;
-
 }

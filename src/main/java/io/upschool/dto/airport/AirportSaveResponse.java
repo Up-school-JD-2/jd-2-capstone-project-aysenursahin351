@@ -1,4 +1,4 @@
-package io.upschool.dto;
+package io.upschool.dto.airport;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,10 +9,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class RouteDTO {
-    private Long id;
-    private AirportDTO departureAirport;
-    private AirportDTO arrivalAirport;
-    private double distance;
-}
+public class AirportSaveResponse {
 
+    private Long id;
+    private String name;
+    private String country;
+    private String code;
+}

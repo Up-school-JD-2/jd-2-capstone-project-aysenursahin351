@@ -1,15 +1,13 @@
 package io.upschool.controller;
 
-import io.upschool.dto.TicketDTO;
-import io.upschool.entity.Ticket;
+import io.upschool.dto.ticket.TicketSaveRequest;
+import io.upschool.dto.ticket.TicketSaveResponse;
 import io.upschool.service.TicketService;
+import io.upschool.dto.BaseResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/tickets")
@@ -17,26 +15,24 @@ import java.util.List;
 public class TicketController {
     private final TicketService ticketService;
 
-    @GetMapping
-    public ResponseEntity<List<TicketDTO>> getAllTickets() {
-        List<TicketDTO> tickets = ticketService.getAllTickets();
-        return ResponseEntity.ok(tickets);
-    }
-
     @GetMapping("/{id}")
-    public ResponseEntity<TicketDTO> getTicketById(@PathVariable Long id) {
-        TicketDTO ticket = ticketService.getTicketById(id);
-        if (ticket != null) {
-            return ResponseEntity.ok(ticket);
+    public ResponseEntity<BaseResponse<TicketSaveResponse>> getTicketById(@PathVariable Long id) {
+        BaseResponse<TicketSaveResponse> TicketSaveResponse = ticketService.getTicketById(id);
+        if (TicketSaveResponse.isSuccess()) {
+            return ResponseEntity.ok(TicketSaveResponse);
         } else {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(TicketSaveResponse);
         }
     }
 
     @PostMapping
-    public ResponseEntity<TicketDTO> saveTicket(@RequestBody TicketDTO ticketDTO) {
-        TicketDTO savedTicket = ticketService.saveTicket(ticketDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedTicket);
+    public ResponseEntity<BaseResponse<TicketSaveResponse>> saveTicket(@RequestBody TicketSaveRequest ticketRequest) {
+        BaseResponse<TicketSaveResponse> savedTicket = ticketService.saveTicket(ticketRequest);
+        if (savedTicket.isSuccess()) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedTicket);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(savedTicket);
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -45,4 +41,3 @@ public class TicketController {
         return ResponseEntity.noContent().build();
     }
 }
-

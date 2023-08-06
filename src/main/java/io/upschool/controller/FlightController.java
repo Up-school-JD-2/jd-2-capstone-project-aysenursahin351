@@ -1,7 +1,8 @@
 package io.upschool.controller;
-import io.upschool.dto.AirportDTO;
-import io.upschool.dto.FlightDTO;
-import io.upschool.service.AirportService;
+
+import io.upschool.dto.flight.FlightSaveRequest;
+import io.upschool.dto.flight.FlightSaveResponse;
+import io.upschool.dto.BaseResponse;
 import io.upschool.service.FlightService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,25 +17,27 @@ import java.util.List;
 public class FlightController {
     private final FlightService flightService;
 
-    @GetMapping
-    public ResponseEntity<List<FlightDTO>> getAllFlights() {
-        List<FlightDTO> flights = flightService.getAllFlights();
-        return ResponseEntity.ok(flights);
-    }
-
     @GetMapping("/{id}")
-    public ResponseEntity<FlightDTO> getFlightById(@PathVariable Long id) {
-        FlightDTO flight = flightService.getFlightById(id);
-        if (flight != null) {
-            return ResponseEntity.ok(flight);
+    public ResponseEntity<BaseResponse<FlightSaveResponse>> getFlightById(@PathVariable Long id) {
+        BaseResponse<FlightSaveResponse> FlightSaveResponse = flightService.getFlightById(id);
+        if (FlightSaveResponse.isSuccess()) {
+            return ResponseEntity.ok(FlightSaveResponse);
         } else {
             return ResponseEntity.notFound().build();
         }
     }
-
+    @GetMapping
+    public ResponseEntity<BaseResponse<List<FlightSaveResponse>>> getAllFlights() {
+        List<FlightSaveResponse> flights = flightService.getAllFlights();
+        return ResponseEntity.ok(BaseResponse.<List<FlightSaveResponse>>builder()
+                .status(200)
+                .isSuccess(true)
+                .data(flights)
+                .build());
+    }
     @PostMapping
-    public ResponseEntity<FlightDTO> saveFlight(@RequestBody FlightDTO flightDTO) {
-        FlightDTO savedFlight = flightService.saveFlight(flightDTO);
+    public ResponseEntity<BaseResponse<FlightSaveResponse>> saveFlight(@RequestBody FlightSaveRequest flightRequest) {
+        BaseResponse<FlightSaveResponse> savedFlight = flightService.saveFlight(flightRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedFlight);
     }
 

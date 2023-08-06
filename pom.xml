@@ -21,7 +21,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>6.1.0.Final</version> <!-- Kullanmak istediğiniz Hibernate sürümüne uygun bir sürüm numarası belirtin -->
+            <version>6.1.0.Final</version>
         </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>

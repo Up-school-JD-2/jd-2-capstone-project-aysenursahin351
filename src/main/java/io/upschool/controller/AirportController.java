@@ -1,6 +1,8 @@
 package io.upschool.controller;
 
-import io.upschool.dto.AirportDTO;
+import io.upschool.dto.airport.AirportSaveRequest;
+import io.upschool.dto.airport.AirportSaveResponse;
+import io.upschool.dto.BaseResponse;
 import io.upschool.service.AirportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,25 +17,38 @@ import java.util.List;
 public class AirportController {
     private final AirportService airportService;
 
-    @GetMapping
-    public ResponseEntity<List<AirportDTO>> getAllAirports() {
-        List<AirportDTO> airports = airportService.getAllAirports();
-        return ResponseEntity.ok(airports);
-    }
-
     @GetMapping("/{id}")
-    public ResponseEntity<AirportDTO> getAirportById(@PathVariable Long id) {
-        AirportDTO airport = airportService.getAirportById(id);
-        if (airport != null) {
-            return ResponseEntity.ok(airport);
+    public ResponseEntity<BaseResponse<AirportSaveResponse>> getAirportById(@PathVariable Long id) {
+        AirportSaveResponse airportResponse = airportService.getAirportById(id);
+        if (airportResponse != null) {
+            BaseResponse<AirportSaveResponse> response = BaseResponse.<AirportSaveResponse>builder()
+                    .status(200)
+                    .isSuccess(true)
+                    .data(airportResponse)
+                    .build();
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.notFound().build();
+            BaseResponse<AirportSaveResponse> response = BaseResponse.<AirportSaveResponse>builder()
+                    .status(404)
+                    .isSuccess(false)
+                    .error("Airport not found with id: " + id)
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
 
+    @GetMapping
+    public ResponseEntity<BaseResponse<List<AirportSaveResponse>>> getAllAirports() {
+        List<AirportSaveResponse> airports = airportService.getAllAirports();
+        return ResponseEntity.ok(BaseResponse.<List<AirportSaveResponse>>builder()
+                .status(200)
+                .isSuccess(true)
+                .data(airports)
+                .build());
+    }
     @PostMapping
-    public ResponseEntity<AirportDTO> saveAirport(@RequestBody AirportDTO airportDTO) {
-        AirportDTO savedAirport = airportService.saveAirport(airportDTO);
+    public ResponseEntity<BaseResponse<AirportSaveResponse>> saveAirport(@RequestBody AirportSaveRequest airportRequest) {
+        BaseResponse<AirportSaveResponse> savedAirport = airportService.saveAirport(airportRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedAirport);
     }
 
@@ -43,4 +58,3 @@ public class AirportController {
         return ResponseEntity.noContent().build();
     }
 }
-
