@@ -39,6 +39,11 @@ public class CompanyController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found");
         }
     }
+    @GetMapping("/search/companies")
+    public ResponseEntity<List<CompanySaveResponse>> searchCompanies(@RequestParam String keyword) {
+        List<CompanySaveResponse> searchResults = companyService.searchCompanyByName(keyword);
+        return ResponseEntity.ok(searchResults);
+    }
 
     @PostMapping
     public ResponseEntity<BaseResponse<CompanySaveResponse>> saveCompany(@RequestBody CompanySaveRequest companyRequest) {
@@ -46,7 +51,7 @@ public class CompanyController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedCompany);
     }
 
-    @PostMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<BaseResponse<CompanySaveResponse>> updateCompany(@PathVariable Long id, @RequestBody CompanyUpdateRequest companyRequest) {
         Company updatedCompany = companyService.updateCompany(id, companyRequest);
         if (updatedCompany != null) {
@@ -62,8 +67,8 @@ public class CompanyController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCompany(@PathVariable Long id) {
-        companyService.deleteCompany(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<BaseResponse<CompanySaveResponse>> deleteCompany(@PathVariable Long id) {
+        BaseResponse<CompanySaveResponse> response=companyService.deleteCompany(id);
+        return ResponseEntity.status(response.getStatus()).body(response);
     }
 }

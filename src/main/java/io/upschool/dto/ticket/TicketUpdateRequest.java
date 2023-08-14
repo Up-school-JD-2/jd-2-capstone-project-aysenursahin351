@@ -10,4 +10,8 @@ public class TicketUpdateRequest {
     private Long flightId;
     private String passengerName;
     private String seatNumber;
+    private String maskedCreditCardNumber;
+    private int cancellation;
+    private boolean isConfirmed; // Eklendi
+
 }

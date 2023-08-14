@@ -1,7 +1,7 @@
 #spring:
 #  datasource:
 #    username: root
-#    password: Ayse.nur0
+#    password: password
 #    url: jdbc:mysql://localhost:3306/upschool
 #    driver-class-name: com.mysql.cj.jdbc.Driver
 #  jpa:

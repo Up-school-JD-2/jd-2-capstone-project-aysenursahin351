@@ -7,16 +7,17 @@ import io.upschool.dto.BaseResponse;
 import io.upschool.entity.Company;
 import io.upschool.repository.CompanyRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Lazy
+
 
 public class CompanyService {
     private final CompanyRepository companyRepository;
@@ -27,7 +28,10 @@ public class CompanyService {
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
-
+    public Company getCompanyById4Repo(Long id) {
+        return companyRepository.findById(id)
+                .orElse(null); // Varsa uçuşu, yoksa null döndürür.
+    }
     public BaseResponse<CompanySaveResponse> saveCompany(CompanySaveRequest companyRequest) {
         Company company = convertToEntity(companyRequest);
         company = companyRepository.save(company);
@@ -69,22 +73,64 @@ public class CompanyService {
         }
     }
 
-    public void deleteCompany(Long id) {
-        companyRepository.deleteById(id);
+    public BaseResponse<CompanySaveResponse> deleteCompany(Long id) {
+        Optional<Company> optionalCompany = companyRepository.findById(id);
+
+        CompanySaveResponse companyResponse;
+        if (optionalCompany.isPresent()) {
+            Company company = optionalCompany.get();
+
+            if (company.getStatus() == 0) {
+                return BaseResponse.<CompanySaveResponse>builder()
+                        .status(404)
+                        .isSuccess(false)
+                        .error("Company has already deleted.")
+                        .data(null) // Bunu ekleyerek data alanını null olarak belirtebiliriz
+                        .build();
+            
+            }
+
+            // Set the status to "deleted" and save
+            company.setStatus(0);
+            companyResponse=  convertToResponse(company);
+            companyRepository.save(company);
+
+
+        } else {
+            return BaseResponse.<CompanySaveResponse>builder()
+                    .status(404)
+                    .isSuccess(false)
+                    .error("Company not found")
+                    .data(null) // Bunu ekleyerek data alanını null olarak belirtebiliriz
+                    .build();
+        }
+        return BaseResponse.<CompanySaveResponse>builder()
+                .status(200)
+                .isSuccess(true)
+                .data(companyResponse)
+                .build();   
     }
+    
+
 
     public CompanySaveResponse convertToResponse(Company company) {
         return CompanySaveResponse.builder()
                 .id(company.getId())
                 .name(company.getName())
-                // Add other fields as needed
+                .status(company.getStatus())
                 .build();
     }
-
+    public List<CompanySaveResponse> searchCompanyByName(String name) {
+        List<Company> companies = companyRepository.flexibleSearch(name);
+        return companies.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
 
     private Company convertToEntity(CompanySaveRequest companyRequest) {
         return Company.builder()
                 .name(companyRequest.getName())
+                .status(1)
                 .build();
     }
 

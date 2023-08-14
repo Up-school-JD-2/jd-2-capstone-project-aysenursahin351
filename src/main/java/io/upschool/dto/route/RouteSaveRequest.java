@@ -13,6 +13,6 @@ public class RouteSaveRequest {
     private Long departureAirportId;
     private Long arrivalAirportId;
     private double distance;
-    private String code; // Yeni alan
+    private String code;
 
 }

@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "company")
 @Data
@@ -20,5 +23,11 @@ public class Company {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
+    private int status = 1; // Default olarak 1
+
+    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL)
+    private List<Flight> flights = new ArrayList<>();
 }
+
 

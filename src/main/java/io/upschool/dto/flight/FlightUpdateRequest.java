@@ -9,8 +9,11 @@ import java.util.Date;
 @Builder
 public class FlightUpdateRequest {
     private Long id;
-    private Long companyId;
+    private String name;
     private Long routeId;
     private Date departureDate;
     private double price;
+    private int totalSeats;
+
+
 }

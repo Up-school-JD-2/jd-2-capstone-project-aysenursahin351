@@ -15,6 +15,7 @@ public class RouteSaveResponse {
     private AirportSaveResponse departureAirport;
     private AirportSaveResponse arrivalAirport;
     private double distance;
+    private int status; // Eklendi
 
 
 

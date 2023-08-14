@@ -14,12 +14,15 @@ import java.util.Date;
 @AllArgsConstructor
 public class FlightSaveResponse {
     private Long id;
+    private String name;
     private Long companyId;
     private Long routeId;
     private Date departureDate;
     private double price;
-
-
+    private int status; // Eklendi
+    private int totalSeats; // Eklendi
+    //private int availableSeats; // Eklendi
+    private int ticketsSold;
 
 
 }

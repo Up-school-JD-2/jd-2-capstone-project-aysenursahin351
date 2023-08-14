@@ -14,4 +14,6 @@ public class CompanySaveResponse {
     private Long id;
     private String name;
     private String error; // Hata durumu için alan eklendi
+    private int status; // Eklendi
+
 }

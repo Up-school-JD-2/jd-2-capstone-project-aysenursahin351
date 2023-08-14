@@ -5,6 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "route")
 @Data
@@ -15,7 +18,11 @@ public class Route {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(nullable = false)
+    private int distance;
 
+    @Column(nullable = false)
+    private int status = 1; // Default olarak 1
     @ManyToOne
     @JoinColumn(name = "departure_airport_id", nullable = false)
     private Airport departureAirport;
@@ -24,7 +31,6 @@ public class Route {
     @JoinColumn(name = "arrival_airport_id", nullable = false)
     private Airport arrivalAirport;
 
-    @Column(nullable = false)
-    private int distance;
-
+    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL)
+    private List<Flight> flights = new ArrayList<>();
 }

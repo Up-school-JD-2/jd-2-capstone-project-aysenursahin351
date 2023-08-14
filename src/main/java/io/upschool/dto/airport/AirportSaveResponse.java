@@ -15,4 +15,6 @@ public class AirportSaveResponse {
     private String name;
     private String country;
     private String code;
+    private int status; // Eklendi
+
 }

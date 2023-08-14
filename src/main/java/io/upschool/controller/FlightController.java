@@ -3,6 +3,8 @@ package io.upschool.controller;
 import io.upschool.dto.flight.FlightSaveRequest;
 import io.upschool.dto.flight.FlightSaveResponse;
 import io.upschool.dto.BaseResponse;
+import io.upschool.dto.flight.FlightUpdateRequest;
+import io.upschool.exception.ResourceAlreadyDeletedException;
 import io.upschool.service.FlightService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -35,15 +37,34 @@ public class FlightController {
                 .data(flights)
                 .build());
     }
+    @GetMapping("/search")
+    public ResponseEntity<List<FlightSaveResponse>> searchCompanies(@RequestParam String keyword) {
+        List<FlightSaveResponse> searchResults = flightService.searchCompanyByName(keyword);
+        return ResponseEntity.ok(searchResults);
+    }
+
     @PostMapping
     public ResponseEntity<BaseResponse<FlightSaveResponse>> saveFlight(@RequestBody FlightSaveRequest flightRequest) {
         BaseResponse<FlightSaveResponse> savedFlight = flightService.saveFlight(flightRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedFlight);
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteFlight(@PathVariable Long id) {
-        flightService.deleteFlight(id);
-        return ResponseEntity.noContent().build();
+    @PutMapping("/{id}")
+    public ResponseEntity<BaseResponse<FlightSaveResponse>> updateFlight(
+            @PathVariable Long id,
+            @RequestBody FlightUpdateRequest flightRequest
+    ) {
+        BaseResponse<FlightSaveResponse> updatedFlight = flightService.updateFlight(id, flightRequest);
+        if (updatedFlight.isSuccess()) {
+            return ResponseEntity.ok(updatedFlight);
+        } else {
+            return ResponseEntity.status(updatedFlight.getStatus()).body(updatedFlight);
+        }
     }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<BaseResponse<Void>> deleteFlight(@PathVariable Long id) throws ResourceAlreadyDeletedException {
+        BaseResponse<Void> response = flightService.deleteFlight(id);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+
 }

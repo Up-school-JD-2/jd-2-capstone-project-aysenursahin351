@@ -1,6 +1,7 @@
 package io.upschool.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.upschool.dto.route.RouteSaveRequest;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class BaseResponse<T> {
+public class BaseResponse<T>  {
 
     private int status;
 

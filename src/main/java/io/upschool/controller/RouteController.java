@@ -1,8 +1,10 @@
 package io.upschool.controller;
 
+import io.upschool.dto.airport.AirportSaveResponse;
 import io.upschool.dto.route.RouteSaveRequest;
 import io.upschool.dto.route.RouteSaveResponse;
 import io.upschool.dto.BaseResponse;
+import io.upschool.dto.route.RouteUpdateRequest;
 import io.upschool.service.RouteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,7 +18,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RouteController {
     private final RouteService routeService;
-
     @GetMapping("/{id}")
     public ResponseEntity<BaseResponse<RouteSaveResponse>> getRouteById(@PathVariable Long id) {
         BaseResponse<RouteSaveResponse> routeResponse = routeService.getRouteById(id);
@@ -25,6 +26,11 @@ public class RouteController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+    @GetMapping("/search/routes")
+    public ResponseEntity<List<RouteSaveResponse>> searchRoutes(@RequestParam String keyword) {
+        List<RouteSaveResponse> searchResults = routeService.searchRoutesByName(keyword);
+        return ResponseEntity.ok(searchResults);
     }
     @GetMapping
     public ResponseEntity<BaseResponse<List<RouteSaveResponse>>> getAllRoutes() {
@@ -39,7 +45,15 @@ public class RouteController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<BaseResponse<Void>> deleteRoute(@PathVariable Long id) {
-        BaseResponse<Void> response = routeService.deleteRoute(id);
+        BaseResponse<Void> response = routeService.softDeleteRoute(id);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<BaseResponse<RouteSaveResponse>> updateRoute(@PathVariable Long id, @RequestBody RouteUpdateRequest routeUpdateRequest) {
+        routeUpdateRequest.setId(id);
+        BaseResponse<RouteSaveResponse> response = routeService.updateRoute(routeUpdateRequest);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
 }
